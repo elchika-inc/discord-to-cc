@@ -88,7 +88,9 @@ mcp.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (!lastReplyMessage) {
       return { content: [{ type: 'text' as const, text: 'No active Discord conversation to reply to.' }], isError: true }
     }
-    for (const chunk of splitText(text)) {
+    const [first, ...rest] = splitText(text)
+    await lastReplyMessage.reply(first)
+    for (const chunk of rest) {
       await lastReplyMessage.channel.send(chunk)
     }
     return { content: [{ type: 'text' as const, text: `Message sent to channel ${lastReplyMessage.channelId}.` }] }

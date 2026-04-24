@@ -100,6 +100,9 @@ bun src/server.ts
 }
 ```
 
+> [!WARNING]
+> `.mcp.json` に `DISCORD_BOT_TOKEN` を直書きした場合、`.gitignore` に追加してコミットしないよう注意してください。代わりに `.env` にトークンを設定し、`.mcp.json` の `env` フィールドを省略することを推奨します。
+
 > [!TIP]
 > `env` フィールドに直接トークンを書く代わりに、`.env` ファイルに記述して `bun --env-file .env src/server.ts` のように起動することも可能です。
 
@@ -147,6 +150,10 @@ DM の場合は `guild_id` は含まれません。
 - Discord のメッセージ上限は 2000 文字。超過時は自動分割送信
 - テキストメッセージのみ対応（画像・ファイル非対応）
 - Permission relay は常に自動許可（`allow` を即座に返す）
+
+## Known Limitations
+
+- 同時に複数ユーザーからメッセージが届いた場合、`discord_reply` の返信先が最後のメッセージに上書きされます。`DISCORD_ALLOWED_USER_IDS` で使用者を1名に限定することを推奨します。
 
 ## License
 
