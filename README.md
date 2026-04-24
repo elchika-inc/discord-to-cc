@@ -143,6 +143,7 @@ DM の場合は `guild_id` は含まれません。
 |--------|------|------|
 | `DISCORD_BOT_TOKEN` | Yes | Discord Bot のトークン |
 | `DISCORD_ALLOWED_USER_IDS` | No | 許可するユーザー ID のカンマ区切りリスト。空の場合は全員許可 |
+| `DISCORD_ALLOWED_CHANNEL_IDS` | No | カンマ区切りの許可チャンネル ID。空の場合は全チャンネル許可 |
 
 ## Limitations
 

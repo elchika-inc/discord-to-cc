@@ -11,6 +11,8 @@ import { z } from 'zod'
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN
 const ALLOWED_USER_IDS = (process.env.DISCORD_ALLOWED_USER_IDS ?? '')
   .split(',').map(s => s.trim()).filter(Boolean)
+const ALLOWED_CHANNEL_IDS = (process.env.DISCORD_ALLOWED_CHANNEL_IDS ?? '')
+  .split(',').map(s => s.trim()).filter(Boolean)
 
 if (!BOT_TOKEN) {
   console.error('[discord] Missing DISCORD_BOT_TOKEN')
@@ -141,6 +143,7 @@ client.on(Events.MessageCreate, async (message) => {
   if (!isDm && !isMentioned) return
 
   if (ALLOWED_USER_IDS.length > 0 && !ALLOWED_USER_IDS.includes(userId)) return
+  if (ALLOWED_CHANNEL_IDS.length > 0 && !ALLOWED_CHANNEL_IDS.includes(message.channelId)) return
 
   const cleanText = message.cleanContent.trim()
   if (!cleanText) return
