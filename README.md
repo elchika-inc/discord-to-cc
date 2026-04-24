@@ -24,59 +24,140 @@ cd discord-to-cc
 bun install
 ```
 
-### 2. Discord Developer Portal
+### 2. Discord Application を作成する
 
-1. [Discord Developer Portal](https://discord.com/developers/applications) にログイン
-2. **New Application** で Application を作成
-3. 左メニュー「**Bot**」→「**Add Bot**」でボットを追加
-4. 「**Token**」セクションの「**Reset Token**」でトークンを取得してコピー
+1. [Discord Developer Portal](https://discord.com/developers/applications) を開く
+2. 右上の **New Application** をクリック
+3. Application 名を入力（例: `my-claude-bot`）して **Create**
+
+### 3. Bot を追加して Token を取得する
+
+1. 左メニュー **Bot** を選択
+2. **Add Bot** → **Yes, do it!** で Bot を作成
+3. **Token** セクションの **Reset Token** をクリック → 表示されたトークンをコピー
 
 > [!IMPORTANT]
-> 同じ「Bot」ページの「**Privileged Gateway Intents**」セクションで **Message Content Intent** を **ON** にしてください。
-> これを有効にしないと、Bot はメッセージ本文を受信できず、Claude Code に転送されません。
+> **Token は一度しか表示されません。** 必ず安全な場所に保存してください。
+> 漏洩した場合は同じ手順で Reset Token して古いトークンを無効化できます。
 
-### 3. Credentials
+4. 同じページの **Privileged Gateway Intents** セクションで以下を **ON** にして **Save Changes**:
+
+> [!IMPORTANT]
+> **Message Content Intent を必ず ON にしてください。**
+> OFF のままだとメッセージ本文が空文字になり、Claude Code に転送されません。
+
+| Intent | 設定 |
+|--------|------|
+| Presence Intent | OFF でよい |
+| Server Members Intent | OFF でよい |
+| **Message Content Intent** | **ON（必須）** |
+
+### 4. Bot をサーバーに招待する
+
+1. 左メニュー **OAuth2** → **OAuth2 URL Generator** を選択
+2. **Scopes** で `bot` にチェック
+3. **Bot Permissions** で以下にチェック:
+   - `View Channels`
+   - `Send Messages`
+   - `Read Message History`
+4. ページ下部の **Generated URL** をコピーしてブラウザで開く
+5. 招待先のサーバーを選択 → **認証**
+
+> [!TIP]
+> Bot を起動した後に表示される `Invite URL` でも同じ操作ができます。
+
+### 5. 各種 ID を取得する
+
+ID を取得するには Discord の **開発者モード** が必要です。
+
+**開発者モードを有効化:**
+Discord クライアント → **設定（歯車アイコン）** → **詳細設定** → **開発者モード** を ON
+
+---
+
+#### Bot Token
+
+上記の手順 3 で取得したトークンです。
+
+```
+DISCORD_BOT_TOKEN=your_bot_token_here
+```
+
+---
+
+#### User ID（`DISCORD_ALLOWED_USER_IDS`）
+
+自分のアカウントの ID を取得します。
+
+1. 開発者モードが ON の状態で、**自分のアバター** を右クリック
+2. **ユーザー ID をコピー** を選択
+
+```
+DISCORD_ALLOWED_USER_IDS=123456789012345678
+```
+
+複数ユーザーを許可する場合はカンマ区切り:
+
+```
+DISCORD_ALLOWED_USER_IDS=111111111111111111,222222222222222222
+```
+
+空にすると全ユーザーからのメッセージを受け付けます（非推奨）。
+
+---
+
+#### Channel ID（`DISCORD_ALLOWED_CHANNEL_IDS`）
+
+特定チャンネルのメッセージだけを受信したい場合に設定します。
+
+1. 開発者モードが ON の状態で、対象の **チャンネル名** を右クリック
+2. **チャンネル ID をコピー** を選択
+
+```
+DISCORD_ALLOWED_CHANNEL_IDS=987654321098765432
+```
+
+複数チャンネルを許可する場合はカンマ区切り:
+
+```
+DISCORD_ALLOWED_CHANNEL_IDS=987654321098765432,111122223333444455
+```
+
+空にすると全チャンネルのメッセージを受け付けます。
+
+> [!TIP]
+> **複数プロジェクトで使い分ける場合の推奨構成:**
+> Discord はBot Token ごとに WebSocket 接続が1本しか許可されません。
+> プロジェクトごとに別の Bot（別の Token）を作成し、担当チャンネルを `DISCORD_ALLOWED_CHANNEL_IDS` で絞り込んでください。
+
+---
+
+### 6. Credentials を設定する
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` を編集して Bot Token と許可ユーザー ID を設定:
+`.env` を編集:
 
 ```env
 DISCORD_BOT_TOKEN=your_bot_token_here
-DISCORD_ALLOWED_USER_IDS=123456789012345678
+DISCORD_ALLOWED_USER_IDS=your_user_id_here
+DISCORD_ALLOWED_CHANNEL_IDS=your_channel_id_here
 ```
 
-**User ID の確認方法:**
-
-1. Discord クライアントの「**設定**」→「**詳細設定**」→「**開発者モード**」を ON
-2. 許可したいユーザーのアバターを右クリック →「**ユーザーIDをコピー**」
-
-複数ユーザーを許可する場合はカンマ区切りで指定:
-
-```env
-DISCORD_ALLOWED_USER_IDS=111111111111111111,222222222222222222
-```
-
-`DISCORD_ALLOWED_USER_IDS` を空にすると全ユーザーからのメッセージを受け付けます。
-
-### 4. Start
+### 7. 起動確認
 
 ```bash
 bun src/server.ts
 ```
 
-起動すると以下のように表示されます:
+以下のように表示されれば接続成功です:
 
 ```
 [discord] Logged in as YourBot#1234
 [discord] Invite URL: https://discord.com/oauth2/authorize?client_id=...&permissions=3072&scope=bot
 ```
-
-### 5. Invite Bot to Server
-
-上記の起動ログに表示される **Invite URL** をブラウザで開き、Bot を招待したいサーバーを選択して追加します。
 
 ## Claude Code への組み込み
 
