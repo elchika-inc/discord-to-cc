@@ -106,7 +106,7 @@ bun src/server.ts
 ### 起動コマンド
 
 ```bash
-claude --dangerously-load-development-channels
+claude --dangerously-load-development-channels server:discord
 ```
 
 Claude Code セッションが起動すると Discord channel が自動的に接続され、`Discord channel ready` 通知が届きます。
