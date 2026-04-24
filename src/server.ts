@@ -79,9 +79,14 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 mcp.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === 'discord_reply') {
-    const { text } = request.params.arguments as { text: string }
+    const ArgsSchema = z.object({ text: z.string() })
+    const parsed = ArgsSchema.safeParse(request.params.arguments)
+    if (!parsed.success) {
+      return { content: [{ type: 'text' as const, text: 'Invalid arguments.' }], isError: true }
+    }
+    const { text } = parsed.data
     if (!lastReplyMessage) {
-      return { content: [{ type: 'text' as const, text: 'No active Discord conversation to reply to.' }] }
+      return { content: [{ type: 'text' as const, text: 'No active Discord conversation to reply to.' }], isError: true }
     }
     for (const chunk of splitText(text)) {
       await lastReplyMessage.channel.send(chunk)
@@ -117,8 +122,8 @@ function dedup(id: string): boolean {
   if (seenMessageIds.has(id)) return true
   seenMessageIds.add(id)
   if (seenMessageIds.size > MAX_SEEN) {
-    const first = seenMessageIds.values().next().value!
-    seenMessageIds.delete(first)
+    const first = seenMessageIds.values().next().value
+    if (first !== undefined) seenMessageIds.delete(first)
   }
   return false
 }
@@ -175,4 +180,4 @@ process.stdin.on('end', () => {
 const transport = new StdioServerTransport()
 await mcp.connect(transport)
 
-client.login(BOT_TOKEN)
+await client.login(BOT_TOKEN)
